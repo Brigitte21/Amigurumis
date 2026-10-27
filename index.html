@@ -126,9 +126,8 @@ const CONFIG = {
 </main>
 
 <div class="cta">
-  <a id="pedir" class="btn" href="https://ig.me/m/hanalabcrochet" rel="noopener">Pedir por Instagram 💌</a>
-  <p class="note">Copiamos tu pedido; solo tienes que pegarlo en el chat.
-    ¿No se abre el chat? <a id="perfil" href="https://www.instagram.com/hanalabcrochet/" rel="noopener">Ir al perfil</a></p>
+  <a id="pedir" class="btn" href="https://www.instagram.com/hanalabcrochet/" rel="noopener">Ir al perfil de Instagram 💌</a>
+  <p class="note">Copiamos tu pedido: pulsa «Enviar mensaje» en el perfil y pégalo en el chat.</p>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -215,14 +214,13 @@ function copiarSync(text){
 
 const usuario = encodeURIComponent(C.instagram);
 const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent));
-$('pedir').href  = 'https://ig.me/m/' + usuario;
-$('perfil').href = 'https://www.instagram.com/' + usuario + '/';
+$('pedir').href = 'https://www.instagram.com/' + usuario + '/';
 // En ordenador abre pestaña nueva; en móvil misma pestaña para que salte la app de Instagram
-if (!esMovil) { $('pedir').target = '_blank'; $('perfil').target = '_blank'; }
+if (!esMovil) $('pedir').target = '_blank';
 
 $('pedir').addEventListener('click', () => {
   const ok = copiarSync(mensaje());
-  toast(ok ? '¡Pedido copiado! Pégalo en el chat de Instagram 💌' : 'Abre el chat y cuéntame tu pedido 💌', 3500);
+  toast(ok ? '¡Pedido copiado! Pulsa «Enviar mensaje» y pégalo 💌' : 'Envíame un mensaje desde el perfil y cuéntame tu pedido 💌', 3500);
   // No se cancela el clic: el navegador sigue el enlace de forma nativa
 });
 
