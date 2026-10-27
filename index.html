@@ -83,7 +83,8 @@ const CONFIG = {
   .result small{color:var(--muted)}
   .result b{display:block;font-size:1.35rem}
   .cta{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%)}
-  .cta button{display:block;width:100%;max-width:528px;margin:0 auto;padding:14px;border:0;border-radius:999px;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:700;font-size:1.05rem;cursor:pointer}
+  .cta .btn{display:block;width:100%;max-width:528px;margin:0 auto;padding:14px;border:0;border-radius:999px;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:700;font-size:1.05rem;cursor:pointer;text-align:center;text-decoration:none}
+  .note a{color:var(--accent)}
   .note{font-size:.82rem;color:var(--muted);text-align:center;margin-top:6px}
   .toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center}
   .toast.show{opacity:1}
@@ -125,8 +126,9 @@ const CONFIG = {
 </main>
 
 <div class="cta">
-  <button id="pedir">Pedir por Instagram 💌</button>
-  <p class="note">Copiamos tu pedido; solo tienes que pegarlo en el chat.</p>
+  <a id="pedir" class="btn" href="https://ig.me/m/hanalabcrochet" rel="noopener">Pedir por Instagram 💌</a>
+  <p class="note">Copiamos tu pedido; solo tienes que pegarlo en el chat.
+    ¿No se abre el chat? <a id="perfil" href="https://www.instagram.com/hanalabcrochet/" rel="noopener">Ir al perfil</a></p>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -197,20 +199,32 @@ function mensaje(){
     q.fecha.toLocaleDateString('es-ES', {day: 'numeric', month: 'long'});
 }
 
-async function copiar(text){
-  try { await navigator.clipboard.writeText(text); return true; }
-  catch (e) {
-    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
-    let ok = false; try { ok = document.execCommand('copy'); } catch (_) {}
-    ta.remove(); return ok;
-  }
+// Copia SÍNCRONA (dentro del clic) para no bloquear la navegación al chat
+function copiarSync(text){
+  let ok = false;
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.setAttribute('readonly', '');
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
+  document.body.appendChild(ta);
+  ta.select(); ta.setSelectionRange(0, text.length);
+  try { ok = document.execCommand('copy'); } catch (_) {}
+  ta.remove();
+  if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+  return ok || !!navigator.clipboard;
 }
 
-$('pedir').onclick = async () => {
-  const ok = await copiar(mensaje());
+const usuario = encodeURIComponent(C.instagram);
+const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent));
+$('pedir').href  = 'https://ig.me/m/' + usuario;
+$('perfil').href = 'https://www.instagram.com/' + usuario + '/';
+// En ordenador abre pestaña nueva; en móvil misma pestaña para que salte la app de Instagram
+if (!esMovil) { $('pedir').target = '_blank'; $('perfil').target = '_blank'; }
+
+$('pedir').addEventListener('click', () => {
+  const ok = copiarSync(mensaje());
   toast(ok ? '¡Pedido copiado! Pégalo en el chat de Instagram 💌' : 'Abre el chat y cuéntame tu pedido 💌', 3500);
-  setTimeout(() => { window.open('https://ig.me/m/' + encodeURIComponent(C.instagram), '_blank'); }, 900);
-};
+  // No se cancela el clic: el navegador sigue el enlace de forma nativa
+});
 
 $('titulo').textContent = C.negocio;
 document.title = 'Calcula tu amigurumi · ' + C.negocio;
